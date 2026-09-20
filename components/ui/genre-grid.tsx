@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { genres } from "@/lib/catalog";
 
@@ -10,12 +11,40 @@ export function GenreGrid({
   picked: string[];
   onToggle: (slug: string) => void;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (shown) return;
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setShown(true);
+      return;
+    }
+    let done = false;
+    const reveal = () => {
+      if (done) return;
+      done = true;
+      setShown(true);
+    };
+    const io = new IntersectionObserver(
+      (entries) => entries.some((e) => e.isIntersecting) && reveal(),
+      { rootMargin: "-40px", threshold: 0.01 },
+    );
+    io.observe(el);
+    const fallback = window.setTimeout(reveal, 1600);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(fallback);
+    };
+  }, [shown]);
+
   return (
     <motion.div
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-40px" }}
+      ref={ref}
       variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+      initial={shown ? false : "hidden"}
+      animate={shown ? "show" : undefined}
       className="grid grid-cols-1 gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
       {genres.map((g, i) => {
         const on = picked.includes(g.slug);

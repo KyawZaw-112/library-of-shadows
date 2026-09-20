@@ -17,9 +17,9 @@ export default function SupportPage() {
         LINE Official
       </a>
       </Reveal>
-      <RevealGroup as="ul" className="mt-10 space-y-4">
+      <RevealGroup className="mt-10 space-y-4">
         {faqs.map((f) => (
-          <RevealItem key={f.q} as="li" className="border border-white/10 bg-white/[0.02] p-4">
+          <RevealItem key={f.q} className="border border-white/10 bg-white/[0.02] p-4">
             <p className="font-display text-xl text-white">{f.q}</p>
             <p className="mt-1 text-sm text-white/55">{f.a}</p>
           </RevealItem>
