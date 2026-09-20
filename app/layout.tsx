@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/Providers";
+import SiteShell from "@/components/SiteShell";
 
 const display = Cormorant_Garamond({
   subsets: ["latin"],
@@ -25,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body className="font-body antialiased">
         <div className="grain" aria-hidden />
-        {children}
+        <Providers>
+          <SiteShell>{children}</SiteShell>
+        </Providers>
       </body>
     </html>
   );

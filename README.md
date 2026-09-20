@@ -1,33 +1,39 @@
 # Library of Shadows
 
-Dark-mode e-commerce for university students, young adults, and English learners.
+Dark-mode bookshop for university students, young adults, and English learners (18–30).
 
-## What’s in this repo
+**Live:** https://kyawzaw-112.github.io/library-of-shadows/
 
-| Path | Contents |
+## Demo (no backend required)
+
+State lives in `localStorage` so GitHub Pages can run the full flow.
+
+| Role | How |
 |---|---|
-| `docs/ARCHITECTURE.md` | Full-stack architecture, recs, payments, admin |
-| `supabase/schema.sql` | Users, products, bundles, orders, reviews, loyalty, RLS |
-| `app/` + `components/HomePage.tsx` | Mobile-first homepage (Next.js + Tailwind + Framer Motion) |
+| Shopper | Register / login with any email |
+| Admin | Email containing `admin` e.g. `admin@shadows.local` |
+| Coupon | `WELCOME10` (first order, 10%) |
+| Points | 1 pt / ฿10 · 100 pts = ฿20 |
 
-## Run the homepage
+## Routes
+
+`/` catalog `/catalog` PDP `/product/[slug]` cart checkout account orders support onboarding  
+Admin: `/admin` `/admin/products` `/admin/orders` `/admin/analytics`
+
+## Run locally
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Production static export (GitHub Pages):
 
-## Database
-
-Create a Supabase project, then run `supabase/schema.sql` in the SQL editor. Wire env:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```bash
+set GITHUB_PAGES=true
+pnpm build
 ```
 
-## Brand
+## Later: real backend
 
-Charcoal / plum / navy, ember gold accents, Cormorant Garamond + Outfit, glass cards, grain overlay.
+`supabase/schema.sql` + `docs/ARCHITECTURE.md` — Auth, RLS, PromptPay webhooks.
