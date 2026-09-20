@@ -2,19 +2,24 @@
 
 import BookCard from "@/components/BookCard";
 import { productBySlug, useStore } from "@/lib/store";
+import { Reveal, RevealGroup, RevealItem } from "@/components/ui/reveal";
 
 export default function WishlistPage() {
   const { wishlist } = useStore();
   const items = wishlist.map(productBySlug).filter(Boolean);
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-display text-4xl text-mist">Wishlist</h1>
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <main className="mx-auto max-w-6xl px-4 py-16">
+      <Reveal>
+      <h1 className="font-display text-5xl text-white">Wishlist</h1>
+      </Reveal>
+      <RevealGroup className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-4">
         {items.map((p) => (
-          <BookCard key={p!.id} product={p!} />
+          <RevealItem key={p!.id}>
+            <BookCard product={p!} />
+          </RevealItem>
         ))}
-      </div>
-      {!items.length && <p className="mt-6 text-mist/50">No saved spines yet.</p>}
+      </RevealGroup>
+      {!items.length && <p className="mt-6 text-white/45">No saved spines yet.</p>}
     </main>
   );
 }

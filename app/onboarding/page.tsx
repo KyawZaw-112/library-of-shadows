@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { genres } from "@/lib/catalog";
 import { useStore } from "@/lib/store";
+import { Reveal } from "@/components/ui/reveal";
+import { GenreGrid } from "@/components/ui/genre-grid";
+import { motion } from "framer-motion";
 
 const goals = [
   { id: "leisure", label: "Leisure / novels" },
@@ -19,34 +21,32 @@ export default function OnboardingPage() {
   const router = useRouter();
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-12">
-      <h1 className="font-display text-4xl text-mist">Taste quiz</h1>
-      <p className="mt-2 text-sm text-mist/55">Sixty seconds. We light Recommended from this.</p>
-      <div className="mt-6 flex flex-wrap gap-2">
-        {genres.map((g) => {
-          const on = picked.includes(g.slug);
-          return (
-            <button
-              key={g.slug}
-              type="button"
-              onClick={() => setPicked((p) => (on ? p.filter((s) => s !== g.slug) : [...p, g.slug]))}
-              className={`rounded-full border px-4 py-2 text-sm ${on ? "border-ember bg-ember/20 text-ember" : "border-ember/20"}`}
-            >
-              {g.name}
-            </button>
-          );
-        })}
-      </div>
-      <div className="mt-6 space-y-2">
+    <main className="mx-auto max-w-xl px-4 py-16">
+      <Reveal>
+      <h1 className="font-display text-5xl text-white">Taste quiz</h1>
+      <p className="mt-2 text-sm text-white/45">Sixty seconds. We light Recommended from this.</p>
+      </Reveal>
+      <h2 className="mt-10 text-[11px] tracking-[0.25em] text-white/40 uppercase">Genres</h2>
+      <Reveal delay={0.1} className="mt-4">
+        <GenreGrid
+          picked={picked}
+          onToggle={(slug) =>
+            setPicked((p) => (p.includes(slug) ? p.filter((s) => s !== slug) : [...p, slug]))
+          }
+        />
+      </Reveal>
+      <h2 className="mt-10 text-[11px] tracking-[0.25em] text-white/40 uppercase">Goal</h2>
+      <div className="mt-3 space-y-2">
         {goals.map((g) => (
-          <label key={g.id} className="glass flex items-center gap-2 rounded-xl px-4 py-3 text-sm">
-            <input type="radio" checked={goal === g.id} onChange={() => setGoal(g.id)} />
+          <label key={g.id} className="glass flex cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm text-white/80">
+            <input type="radio" checked={goal === g.id} onChange={() => setGoal(g.id)} className="accent-white" />
             {g.label}
           </label>
         ))}
       </div>
-      <button
-        className="mt-8 w-full rounded-full bg-ember py-3 font-semibold text-ink"
+      <motion.button
+        whileTap={{ scale: 0.99 }}
+        className="mt-10 w-full rounded-full bg-white py-3 font-medium text-black transition hover:bg-white/90"
         onClick={() => {
           if (!user) login("guest@shadows.local", "Guest reader", { genres: picked, goal });
           else completeOnboarding(picked, goal);
@@ -54,7 +54,7 @@ export default function OnboardingPage() {
         }}
       >
         Light my shelf
-      </button>
+      </motion.button>
     </main>
   );
 }

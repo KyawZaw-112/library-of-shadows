@@ -6,6 +6,8 @@ import Link from "next/link";
 import { provinces } from "@/lib/catalog";
 import { thb } from "@/lib/money";
 import { productBySlug, useStore } from "@/lib/store";
+import { Reveal } from "@/components/ui/reveal";
+import { motion } from "framer-motion";
 
 export default function CheckoutPage() {
   const { user, cart, placeOrder } = useStore();
@@ -37,7 +39,7 @@ export default function CheckoutPage() {
   if (!user) {
     return (
       <main className="p-10 text-center">
-        <Link href="/login/" className="text-ember">
+        <Link href="/login/" className="text-white underline">
           Sign in to checkout
         </Link>
       </main>
@@ -45,17 +47,19 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="mx-auto grid max-w-5xl gap-8 px-4 py-10 md:grid-cols-2">
+    <main className="mx-auto grid max-w-5xl gap-12 px-4 py-16 md:grid-cols-2">
       <form onSubmit={onSubmit} className="space-y-4">
-        <h1 className="font-display text-4xl text-mist">Checkout</h1>
+      <Reveal>
+        <h1 className="font-display text-5xl text-white">Checkout</h1>
+      </Reveal>
         <input
           required
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="Street, district"
-          className="glass w-full rounded-xl px-4 py-3 text-sm"
+          className="glass w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30"
         />
-        <select value={province} onChange={(e) => setProvince(e.target.value)} className="glass w-full rounded-xl px-4 py-3 text-sm">
+        <select value={province} onChange={(e) => setProvince(e.target.value)} className="glass w-full rounded-xl px-4 py-3 text-sm text-white">
           {provinces.map((p) => (
             <option key={p.name} value={p.name}>
               {p.name} · {thb(p.fee)} delivery
@@ -66,49 +70,69 @@ export default function CheckoutPage() {
           value={coupon}
           onChange={(e) => setCoupon(e.target.value)}
           placeholder="Coupon (WELCOME10)"
-          className="glass w-full rounded-xl px-4 py-3 text-sm"
+          className="glass w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30"
         />
         <fieldset className="space-y-2 text-sm">
-          <legend className="text-mist/60">Payment</legend>
-          {["promptpay", "card", "ewallet"].map((m) => (
-            <label key={m} className="glass flex items-center gap-2 rounded-xl px-4 py-2 capitalize">
-              <input type="radio" name="pay" checked={payment === m} onChange={() => setPayment(m)} />
-              {m === "promptpay" ? "PromptPay QR" : m}
+          <legend className="text-white/55">Payment</legend>
+          {[
+            { id: "promptpay", label: "PromptPay QR" },
+            { id: "card", label: "Credit / debit card" },
+            { id: "ewallet", label: "E-wallet" },
+            { id: "cod", label: "Cash on delivery" },
+          ].map((m) => (
+            <label key={m.id} className="glass flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-white/80">
+              <input type="radio" name="pay" checked={payment === m.id} onChange={() => setPayment(m.id)} className="accent-white" />
+              {m.label}
             </label>
           ))}
         </fieldset>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} />
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-white/80">
+          <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} className="accent-white" />
           Use loyalty points ({user.points})
         </label>
         {payment === "promptpay" && (
-          <div className="glass mx-auto grid h-40 w-40 place-items-center rounded-xl">
-            <div className="grid h-28 w-28 grid-cols-5 gap-0.5 bg-mist p-2">
+          <div className="mx-auto grid h-40 w-40 place-items-center border border-white/10 bg-white/[0.02]">
+            <div className="grid h-28 w-28 grid-cols-5 gap-0.5 bg-white p-2">
               {Array.from({ length: 25 }).map((_, i) => (
-                <div key={i} className={i % 3 ? "bg-ink" : "bg-mist"} />
+                <div key={i} className={i % 3 ? "bg-black" : "bg-white"} />
               ))}
             </div>
           </div>
         )}
-        {err && <p className="text-sm text-rose">{err}</p>}
-        <button className="w-full rounded-full bg-ember py-3 font-semibold text-ink">Pay {thb(total)}</button>
+        {payment === "cod" && (
+          <div className="border border-white/10 bg-white/[0.02] p-5 text-sm leading-relaxed text-white/60">
+            <p className="font-display text-lg text-white">Pay when it arrives</p>
+            <p className="mt-1.5">
+              Keep <strong className="text-white">{thb(total)}</strong> ready for the rider. Free cancellation until the
+              order ships.
+            </p>
+          </div>
+        )}
+        {err && <p className="text-sm text-white">{err}</p>}
+        <motion.button
+          type="submit"
+          whileTap={{ scale: 0.99 }}
+          className="w-full rounded-full bg-white py-3 font-medium text-black transition hover:bg-white/90"
+        >
+          {payment === "cod" ? `Place order · ${thb(total)} on delivery` : `Pay ${thb(total)}`}
+        </motion.button>
       </form>
-      <aside className="glass h-fit rounded-2xl p-6 text-sm">
-        <h2 className="font-display text-2xl text-mist">Summary</h2>
+      <Reveal delay={0.1} className="glass h-fit rounded-2xl p-6 text-sm">
+        <h2 className="font-display text-2xl text-white">Summary</h2>
         {lines.map((l) => (
-          <p key={l.slug} className="mt-2 flex justify-between text-mist/70">
+          <p key={l.slug} className="mt-2 flex justify-between text-white/65">
             <span>
               {l.p.title} × {l.qty}
             </span>
             <span>{thb(l.p.price * l.qty)}</span>
           </p>
         ))}
-        <hr className="my-4 border-ember/15" />
+        <hr className="my-4 border-white/10" />
         <p className="flex justify-between">Subtotal {thb(sub)}</p>
         <p className="flex justify-between">Discount −{thb(disc + pVal)}</p>
         <p className="flex justify-between">Delivery {thb(fee)}</p>
-        <p className="mt-2 font-display text-2xl text-ember">{thb(total)}</p>
-      </aside>
+        <p className="mt-2 font-display text-2xl text-white">{thb(total)}</p>
+      </Reveal>
     </main>
   );
 }

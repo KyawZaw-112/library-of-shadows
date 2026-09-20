@@ -1,31 +1,31 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Fraunces, Figtree } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import SiteShell from "@/components/SiteShell";
 
-const display = Cormorant_Garamond({
+const display = Fraunces({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600"],
   variable: "--font-display",
 });
 
-const body = Outfit({
+const body = Figtree({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   variable: "--font-body",
 });
 
 export const metadata: Metadata = {
-  title: "Library of Shadows — Books for midnight minds",
+  title: "Library of Shadows — Find your next story",
   description:
-    "A dark, cozy bookshop for university students, young adults, and English learners. Bundles, PromptPay, and stories that glow.",
+    "A modern, minimal bookshop for university students, young adults, and English learners in Bangkok.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
-      <body className="font-body antialiased">
+    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+      <body className="font-body font-light antialiased" suppressHydrationWarning>
         <div className="grain" aria-hidden />
         <Providers>
           <SiteShell>{children}</SiteShell>

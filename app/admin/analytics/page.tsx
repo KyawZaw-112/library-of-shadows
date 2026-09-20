@@ -19,17 +19,17 @@ export default function AnalyticsPage() {
   );
   const repeat = orders.length > 1 ? "Repeat possible (same browser profile)" : "Need more orders";
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <Link href="/admin/" className="text-sm text-ember">
+    <main className="mx-auto max-w-3xl px-4 py-16">
+      <Link href="/admin/" className="text-sm text-white/70">
         ← Admin
       </Link>
-      <h1 className="mt-4 font-display text-4xl text-mist">Analytics</h1>
-      <p className="mt-6 text-mist/70">Monthly GMV {thb(gmv)}</p>
-      <p className="text-mist/70">
+      <h1 className="mt-4 font-display text-4xl text-white">Analytics</h1>
+      <p className="mt-6 text-white/65">Monthly GMV {thb(gmv)}</p>
+      <p className="text-white/65">
         Break-even target {thb(breakEven)} · {gmv >= breakEven ? "Hit" : `Gap ${thb(breakEven - gmv)}`}
       </p>
-      <p className="mt-2 text-sm text-mist/50">{repeat}</p>
-      <h2 className="mt-8 font-display text-2xl text-ember">Units by genre</h2>
+      <p className="mt-2 text-sm text-white/45">{repeat}</p>
+      <h2 className="mt-8 font-display text-2xl text-white">Units by genre</h2>
       <ul className="mt-3 space-y-2 text-sm">
         {Object.entries(byGenre).map(([g, n]) => (
           <li key={g} className="flex justify-between">
@@ -37,7 +37,7 @@ export default function AnalyticsPage() {
             <span>{n}</span>
           </li>
         ))}
-        {!Object.keys(byGenre).length && <li className="text-mist/40">No sales yet.</li>}
+        {!Object.keys(byGenre).length && <li className="text-white/40">No sales yet.</li>}
       </ul>
     </main>
   );

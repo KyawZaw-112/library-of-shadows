@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User as SbUser } from "@supabase/supabase-js";
-import { products, provinces, type Product } from "./catalog";
+import { getProduct, products, provinces, type Product } from "./catalog";
+import { getCached, remember } from "./openlibrary";
 import { supabase } from "./supabase";
 
 export type User = {
@@ -51,7 +52,7 @@ type Store = {
   signUp: (email: string, password: string, name: string) => Promise<string | null>;
   logout: () => void;
   completeOnboarding: (genres: string[], goal: string) => void;
-  addToCart: (slug: string, qty?: number) => void;
+  addToCart: (item: string | Product, qty?: number) => void;
   setQty: (slug: string, qty: number) => void;
   toggleWish: (slug: string) => void;
   placeOrder: (input: {
@@ -176,23 +177,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           );
         }
       },
-      addToCart: (slug, qty = 1) =>
+      addToCart: (item, qty = 1) => {
+        const p = typeof item === "string" ? getCached(item) || getProduct(item) : item;
+        if (p) remember(p);
+        const slug = typeof item === "string" ? item : item.slug;
         setCart((c) => {
           const i = c.find((l) => l.slug === slug);
           if (i) return c.map((l) => (l.slug === slug ? { ...l, qty: l.qty + qty } : l));
           return [...c, { slug, qty }];
-        }),
+        });
+      },
       setQty: (slug, qty) => setCart((c) => (qty <= 0 ? c.filter((l) => l.slug !== slug) : c.map((l) => (l.slug === slug ? { ...l, qty } : l)))),
       toggleWish: (slug) => setWishlist((w) => (w.includes(slug) ? w.filter((s) => s !== slug) : [...w, slug])),
       placeOrder: ({ address, province, payment, coupon, usePoints }) => {
         if (!user) return "Please sign in first.";
         if (!cart.length) return "Cart is empty.";
-        const lines = cart.map((l) => {
-          const p = products.find((x) => x.slug === l.slug) as Product;
-          return { slug: l.slug, title: p.title, qty: l.qty, price: p.price };
-        });
+        const lines: { slug: string; title: string; qty: number; price: number }[] = [];
+        for (const l of cart) {
+          const p = getCached(l.slug) || getProduct(l.slug);
+          if (!p) return "A cart title is no longer available.";
+          lines.push({ slug: l.slug, title: p.title, qty: l.qty, price: p.price });
+        }
         for (const l of lines) {
-          if ((inventory[l.slug] ?? 0) < l.qty) return `Not enough stock for ${l.title}`;
+          if ((inventory[l.slug] ?? 18) < l.qty) return `Not enough stock for ${l.title}`;
         }
         const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
         const code = coupon.trim().toUpperCase();
@@ -229,7 +236,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setInventory((inv) => {
           const n = { ...inv };
           lines.forEach((l) => {
-            n[l.slug] = (n[l.slug] ?? 0) - l.qty;
+            n[l.slug] = (n[l.slug] ?? 18) - l.qty;
           });
           return n;
         });
@@ -265,5 +272,5 @@ export function cartCount(cart: CartLine[]) {
 }
 
 export function productBySlug(slug: string) {
-  return products.find((p) => p.slug === slug);
+  return getCached(slug) || getProduct(slug);
 }

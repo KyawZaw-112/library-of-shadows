@@ -3,8 +3,10 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { AuthShell } from "@/components/ui/auth-shell";
 
 export default function LoginPage() {
   const { signIn } = useStore();
@@ -33,26 +35,33 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-display text-4xl text-mist">Sign in</h1>
-      <p className="mt-2 text-sm text-mist/55">Uses your Supabase project. Admin: email containing “admin”.</p>
-      <form onSubmit={go} className="mt-6 space-y-3">
-        <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@campus.edu" className="glass w-full rounded-xl px-4 py-3 text-sm" />
-        <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="glass w-full rounded-xl px-4 py-3 text-sm" />
-        {err && <p className="text-sm text-rose">{err}</p>}
-        <button disabled={busy} className="w-full rounded-full bg-ember py-3 font-semibold text-ink">
+    <AuthShell
+      title="Sign in"
+      subtitle="Admin emails contain “admin”."
+      image="https://covers.openlibrary.org/b/id/10523338-L.jpg"
+    >
+      <form onSubmit={go} className="space-y-3">
+        <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@campus.edu" className="glass w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30" />
+        <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="glass w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30" />
+        {err && <p className="text-sm text-white">{err}</p>}
+        <motion.button
+          type="submit"
+          disabled={busy}
+          whileTap={{ scale: 0.98 }}
+          className="w-full rounded-full bg-white py-3 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-40"
+        >
           {busy ? "Opening…" : "Enter the stacks"}
-        </button>
+        </motion.button>
       </form>
-      <button type="button" onClick={google} className="mt-3 w-full rounded-full border border-ember/30 py-3 text-sm">
+      <button type="button" onClick={google} className="mt-3 w-full rounded-full border border-white/20 py-3 text-sm text-white hover:border-white/50">
         Continue with Google
       </button>
-      <p className="mt-4 text-sm text-mist/50">
+      <p className="mt-4 text-sm text-white/50">
         New here?{" "}
-        <Link href="/register/" className="text-ember">
+        <Link href="/register/" className="text-white underline">
           Create account
         </Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }

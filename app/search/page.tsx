@@ -1,25 +1,42 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import BookCard from "@/components/BookCard";
-import { searchProducts } from "@/lib/catalog";
+import { type Product } from "@/lib/catalog";
+import { searchOpenLibrary } from "@/lib/openlibrary";
+import { Reveal, RevealGroup, RevealItem } from "@/components/ui/reveal";
 
 function Results() {
-  const sp = useSearchParams();
-  const q = sp.get("q") || "";
-  const list = searchProducts(q);
+  const q = useSearchParams().get("q") || "";
+  const [list, setList] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!q.trim()) {
+      setList([]);
+      return;
+    }
+    setLoading(true);
+    searchOpenLibrary({ q, limit: 24 })
+      .then(setList)
+      .finally(() => setLoading(false));
+  }, [q]);
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-display text-4xl text-mist">Search</h1>
-      <p className="text-sm text-mist/55">
-        {q ? `“${q}” · ${list.length} titles` : "Type in the header search."}
-      </p>
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <main className="mx-auto max-w-6xl px-4 py-16">
+      <Reveal>
+      <h1 className="font-display text-5xl text-white">Search</h1>
+      <p className="text-sm text-white/45">Open Library · {q ? `“${q}”` : "Type in the header."}</p>
+      {loading && <p className="mt-4 text-sm text-white/45">Searching…</p>}
+      </Reveal>
+      <RevealGroup className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-4">
         {list.map((p) => (
-          <BookCard key={p.id} product={p} />
+          <RevealItem key={p.id}>
+            <BookCard product={p} />
+          </RevealItem>
         ))}
-      </div>
+      </RevealGroup>
     </main>
   );
 }
