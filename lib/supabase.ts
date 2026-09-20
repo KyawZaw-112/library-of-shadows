@@ -6,7 +6,16 @@ const key =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "";
 
-export const supabaseEnabled = Boolean(url && key);
+function isHttp(u: string) {
+  try {
+    const p = new URL(u);
+    return p.protocol === "http:" || p.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export const supabaseEnabled = isHttp(url) && Boolean(key);
 
 export const supabase: SupabaseClient | null = supabaseEnabled
   ? createClient(url, key, {
