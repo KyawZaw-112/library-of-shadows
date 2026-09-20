@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #c9c0b6;
+  --ember: #e8b86d;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #0a070c;
+  color: var(--paper);
+}
+
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.glass {
+  background: linear-gradient(145deg, rgba(42, 18, 36, 0.55), rgba(16, 24, 42, 0.4));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 184, 109, 0.16);
+}
+
+.candle {
+  box-shadow: 0 0 24px rgba(232, 184, 109, 0.35), 0 0 60px rgba(212, 138, 168, 0.12);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #3d2a38;
+  border-radius: 999px;
+}
