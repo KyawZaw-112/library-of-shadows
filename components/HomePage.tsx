@@ -13,6 +13,7 @@ import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { ChromaticImage } from "@/components/ui/chromatic-image";
 import { GenreGrid } from "@/components/ui/genre-grid";
+import { BookGridSkeleton } from "@/components/ui/skeleton";
 import { Reveal, RevealGroup, RevealItem } from "@/components/ui/reveal";
 
 export default function HomePage() {
@@ -123,13 +124,17 @@ export default function HomePage() {
             Catalog
           </Link>
         </div>
-        <RevealGroup className="grid grid-cols-2 gap-5 md:grid-cols-4">
-          {show.map((p) => (
-            <RevealItem key={p.id}>
-              <BookCard product={p} />
-            </RevealItem>
-          ))}
-        </RevealGroup>
+        {show.length ? (
+          <RevealGroup className="grid grid-cols-2 gap-5 md:grid-cols-4">
+            {show.map((p) => (
+              <RevealItem key={p.id}>
+                <BookCard product={p} />
+              </RevealItem>
+            ))}
+          </RevealGroup>
+        ) : (
+          <BookGridSkeleton count={4} />
+        )}
       </Reveal>
 
       <Reveal className="mb-24">

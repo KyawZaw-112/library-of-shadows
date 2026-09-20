@@ -9,6 +9,7 @@ import { fetchWork, getCached } from "@/lib/openlibrary";
 import { thb } from "@/lib/money";
 import { useStore } from "@/lib/store";
 import { Reveal } from "@/components/ui/reveal";
+import { ProductSkeleton } from "@/components/ui/skeleton";
 import { useFly } from "@/components/ui/fly-to-cart";
 import { motion } from "framer-motion";
 
@@ -32,7 +33,7 @@ function Detail() {
   }, [id]);
 
   if (!id) return <p className="p-8">Missing book id.</p>;
-  if (!p) return <p className="p-8">Loading from Open Library…</p>;
+  if (!p) return <ProductSkeleton />;
 
   const stock = inventory[p.slug] ?? p.stock;
   const mine = reviews.filter((r) => r.slug === p.slug);
@@ -141,7 +142,7 @@ function Detail() {
 
 export default function ProductPage() {
   return (
-    <Suspense fallback={<p className="p-8">Loading…</p>}>
+    <Suspense fallback={<ProductSkeleton />}>
       <Detail />
     </Suspense>
   );

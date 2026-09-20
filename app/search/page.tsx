@@ -6,6 +6,7 @@ import BookCard from "@/components/BookCard";
 import { type Product } from "@/lib/catalog";
 import { searchOpenLibrary } from "@/lib/openlibrary";
 import { Reveal, RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { BookGridSkeleton } from "@/components/ui/skeleton";
 
 function Results() {
   const q = useSearchParams().get("q") || "";
@@ -28,8 +29,12 @@ function Results() {
       <Reveal>
       <h1 className="font-display text-5xl text-white">Search</h1>
       <p className="text-sm text-white/45">Open Library · {q ? `“${q}”` : "Type in the header."}</p>
-      {loading && <p className="mt-4 text-sm text-white/45">Searching…</p>}
       </Reveal>
+      {loading && (
+        <div className="mt-10">
+          <BookGridSkeleton count={8} />
+        </div>
+      )}
       <RevealGroup className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-4">
         {list.map((p) => (
           <RevealItem key={p.id}>

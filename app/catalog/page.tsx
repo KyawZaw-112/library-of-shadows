@@ -5,6 +5,7 @@ import BookCard from "@/components/BookCard";
 import { bundles, genres, type Product } from "@/lib/catalog";
 import { searchOpenLibrary } from "@/lib/openlibrary";
 import { Reveal, RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { BookGridSkeleton, HeadingSkeleton } from "@/components/ui/skeleton";
 
 export default function CatalogPage() {
   const [genre, setGenre] = useState("all");
@@ -69,15 +70,24 @@ export default function CatalogPage() {
           <input type="range" min={250} max={1200} value={max} onChange={(e) => setMax(+e.target.value)} className="accent-white" />
         </label>
       </div>
-      {loading && <p className="text-sm text-white/45">Pulling spines from Open Library…</p>}
-      {err && <p className="text-sm text-white">{err}</p>}
-      <RevealGroup className="grid grid-cols-2 gap-5 md:grid-cols-4">
-        {list.map((p) => (
-          <RevealItem key={p.id}>
-            <BookCard product={p} />
-          </RevealItem>
-        ))}
-      </RevealGroup>
+      {loading ? (
+        <>
+          <div className="mb-8">
+            <HeadingSkeleton />
+          </div>
+          <BookGridSkeleton count={8} />
+        </>
+      ) : err ? (
+        <p className="text-sm text-white">{err}</p>
+      ) : (
+        <RevealGroup className="grid grid-cols-2 gap-5 md:grid-cols-4">
+          {list.map((p) => (
+            <RevealItem key={p.id}>
+              <BookCard product={p} />
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      )}
     </main>
   );
 }

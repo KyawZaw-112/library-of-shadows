@@ -43,6 +43,10 @@ const config: Config = {
           "35%": { transform: "scale(1.45) translateY(-3px)" },
           "100%": { transform: "scale(1)" },
         },
+        shimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
     },
   },
