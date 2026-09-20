@@ -1,9 +1,12 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { User as SbUser } from "@supabase/supabase-js";
 import { products, provinces, type Product } from "./catalog";
+import { supabase } from "./supabase";
 
 export type User = {
+  id?: string;
   email: string;
   name: string;
   isAdmin: boolean;
@@ -44,6 +47,8 @@ type Store = {
   reviews: Review[];
   inventory: Record<string, number>;
   login: (email: string, name?: string, extra?: { genres?: string[]; goal?: string }) => void;
+  signIn: (email: string, password: string) => Promise<string | null>;
+  signUp: (email: string, password: string, name: string) => Promise<string | null>;
   logout: () => void;
   completeOnboarding: (genres: string[], goal: string) => void;
   addToCart: (slug: string, qty?: number) => void;
@@ -75,6 +80,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [inventory, setInventory] = useState<Record<string, number>>(defaultInv);
 
+  const fromSb = (u: SbUser, extra?: Partial<User>): User => ({
+    id: u.id,
+    email: u.email || "",
+    name: (u.user_metadata?.full_name as string) || u.email?.split("@")[0] || "Reader",
+    isAdmin: (u.email || "").toLowerCase().includes("admin"),
+    genres: extra?.genres ?? [],
+    goal: extra?.goal ?? "mixed",
+    points: extra?.points ?? 80,
+    firstOrderUsed: extra?.firstOrderUsed ?? false,
+  });
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
@@ -90,7 +106,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
-    setReady(true);
+
+    let unsub: (() => void) | undefined;
+    (async () => {
+      if (supabase) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.user) setUser(fromSb(data.session.user));
+        const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+          if (session?.user) setUser((prev) => fromSb(session.user, prev ?? undefined));
+          else setUser(null);
+        });
+        unsub = () => sub.subscription.unsubscribe();
+      }
+      setReady(true);
+    })();
+    return () => unsub?.();
   }, []);
 
   useEffect(() => {
@@ -119,8 +149,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           firstOrderUsed: false,
         });
       },
-      logout: () => setUser(null),
-      completeOnboarding: (genres, goal) => setUser((u) => (u ? { ...u, genres, goal } : u)),
+      signIn: async (email, password) => {
+        if (!supabase) return "Supabase is not configured.";
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        return error ? error.message : null;
+      },
+      signUp: async (email, password, name) => {
+        if (!supabase) return "Supabase is not configured.";
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } },
+        });
+        return error ? error.message : null;
+      },
+      logout: () => {
+        void supabase?.auth.signOut();
+        setUser(null);
+      },
+      completeOnboarding: (genres, goal) => {
+        setUser((u) => (u ? { ...u, genres, goal } : u));
+        if (supabase && user?.id) {
+          void supabase.from("profiles").update({ reading_goal: goal, onboarding_completed_at: new Date().toISOString() }).eq("id", user.id);
+          void supabase.from("user_preferences").upsert(
+            genres.map((genre_slug) => ({ user_id: user.id, genre_slug, weight: 1 })),
+          );
+        }
+      },
       addToCart: (slug, qty = 1) =>
         setCart((c) => {
           const i = c.find((l) => l.slug === slug);
