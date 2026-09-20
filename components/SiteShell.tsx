@@ -37,12 +37,15 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               <BookMarked className="h-6 w-6 text-ember" />
               <div className="min-w-0">
                 <p className="font-display text-lg leading-none text-mist">Library of Shadows</p>
-                <p className="hidden text-[10px] tracking-[0.3em] text-ember/70 uppercase sm:block">Open after dusk</p>
+                <p className="hidden text-[10px] tracking-[0.3em] text-ember/70 uppercase sm:block">Find your next story</p>
               </div>
             </Link>
             <nav className="ml-4 hidden gap-4 text-sm text-mist/70 md:flex">
               <Link href="/catalog/" className="hover:text-ember">
                 Catalog
+              </Link>
+              <Link href="/about/" className="hover:text-ember">
+                About
               </Link>
               <Link href="/support/" className="hover:text-ember">
                 Support
@@ -109,7 +112,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           <footer className="mt-16 border-t border-ember/10 px-4 py-10 text-center">
             <p className="font-display text-2xl text-mist">Library of Shadows</p>
             <p className="mt-2 text-xs text-mist/45">
-              <Link href="/support/">FAQ</Link> · LINE · Returns ·{" "}
+              <Link href="/about/">About</Link> · <Link href="/business/">Business model</Link> ·{" "}
+              <Link href="/support/">FAQ</Link> · LINE · TikTok · Instagram ·{" "}
               <Link href="/admin/">Admin</Link>
             </p>
           </footer>

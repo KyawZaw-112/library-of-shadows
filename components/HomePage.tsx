@@ -22,14 +22,14 @@ export default function HomePage() {
     <main className="relative mx-auto max-w-6xl px-4 pb-12">
       <section className="grid items-center gap-10 py-12 md:grid-cols-[1.15fr_0.85fr] md:py-16">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-          <p className="mb-3 text-xs tracking-[0.35em] text-ember uppercase">Gothic bookshop · Bangkok nights</p>
+          <p className="mb-3 text-xs tracking-[0.35em] text-ember uppercase">Bangkok · Students & young adults 18–30</p>
           <h1 className="font-display text-5xl leading-[0.95] text-mist sm:text-6xl md:text-7xl">
-            Read in the
-            <span className="block italic text-ember">half-light.</span>
+            Find your
+            <span className="block italic text-ember">next story.</span>
           </h1>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-mist/70 sm:text-base">
-            Curated physical books and student bundles for 18–30s who study, fall in love with plots, and chase English
-            fluency between lectures.
+            Affordable books. Personal recommendations. A better way to shop — curated spines, student bundles, PromptPay,
+            and home delivery.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/catalog/" className="rounded-full bg-ember px-6 py-3 text-sm font-semibold text-ink">
