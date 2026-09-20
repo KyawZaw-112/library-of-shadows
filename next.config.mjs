@@ -9,6 +9,7 @@ const nextConfig = {
   trailingSlash: true,
   basePath: isPages ? `/${repo}` : "",
   assetPrefix: isPages ? `/${repo}/` : "",
+  env: { NEXT_PUBLIC_BASE_PATH: isPages ? `/${repo}` : "" },
 };
 
 export default nextConfig;

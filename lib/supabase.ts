@@ -9,5 +9,18 @@ const key =
 export const supabaseEnabled = Boolean(url && key);
 
 export const supabase: SupabaseClient | null = supabaseEnabled
-  ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } })
+  ? createClient(url, key, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null;
+
+/** Site origin + Next basePath, so OAuth redirects land inside the app. */
+export function siteOrigin(): string {
+  if (typeof window === "undefined") return "";
+  const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+  return window.location.origin + (base ? base : "");
+}

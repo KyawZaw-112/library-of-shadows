@@ -84,7 +84,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const fromSb = (u: SbUser, extra?: Partial<User>): User => ({
     id: u.id,
     email: u.email || "",
-    name: (u.user_metadata?.full_name as string) || u.email?.split("@")[0] || "Reader",
+    name:
+      (u.user_metadata?.full_name as string) ||
+      (u.user_metadata?.name as string) ||
+      u.email?.split("@")[0] ||
+      "Reader",
     isAdmin: (u.email || "").toLowerCase().includes("admin"),
     genres: extra?.genres ?? [],
     goal: extra?.goal ?? "mixed",

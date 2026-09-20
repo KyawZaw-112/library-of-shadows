@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
-import { supabase } from "@/lib/supabase";
+import { supabase, siteOrigin } from "@/lib/supabase";
 import { AuthShell } from "@/components/ui/auth-shell";
 
 export default function LoginPage() {
@@ -29,7 +29,7 @@ export default function LoginPage() {
     if (!supabase) return setErr("Supabase is not configured.");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + "/" },
+      options: { redirectTo: siteOrigin() + "/" },
     });
     if (error) setErr(error.message);
   };
