@@ -38,7 +38,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     router.push(`/search/?q=${encodeURIComponent(q.trim())}`);
   };
 
-  const hideChrome = path.startsWith("/admin");
+  const hideChrome = path.startsWith("/admin") || path.startsWith("/ops") || path.startsWith("/owner");
   const navItems = [
     { name: "Home", link: "/", icon: <Home className="h-4 w-4" /> },
     { name: "Catalog", link: "/catalog/", icon: <Library className="h-4 w-4" /> },

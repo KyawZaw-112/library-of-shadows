@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
+import { deskHome, roleFromEmail } from "@/lib/roles";
 import { supabase, siteOrigin } from "@/lib/supabase";
 import { AuthShell } from "@/components/ui/auth-shell";
 
@@ -22,7 +23,7 @@ export default function LoginPage() {
     const msg = await signIn(email, password);
     setBusy(false);
     if (msg) setErr(msg);
-    else router.push("/");
+    else router.push(deskHome(roleFromEmail(email)));
   };
 
   const google = async () => {
@@ -37,7 +38,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Sign in"
-      subtitle="Admin emails contain “admin”."
+      subtitle="Customer by default. staff@… opens Ops. owner@… or admin@… opens the owner desk."
       image="https://covers.openlibrary.org/b/id/10523338-L.jpg"
     >
       <form onSubmit={go} className="space-y-3">

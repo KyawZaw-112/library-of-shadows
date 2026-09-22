@@ -44,9 +44,6 @@ export function SiteFooter() {
             <span>TikTok</span>
             <span>Instagram</span>
             <span>Facebook</span>
-            <Link href="/admin/" className="hover:text-white">
-              Admin
-            </Link>
           </div>
         </div>
       </div>

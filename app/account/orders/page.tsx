@@ -11,7 +11,10 @@ export default function OrdersPage() {
   if (!user) return <p className="p-8">Sign in required.</p>;
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="font-display text-4xl text-white">Orders</h1>
+      <Link href="/account/" className="text-sm text-white/70">
+        ← Account
+      </Link>
+      <h1 className="mt-4 font-display text-4xl text-white">Orders</h1>
       <ul className="mt-6 space-y-4">
         {orders.map((o) => (
           <li key={o.id} className="border border-white/10 bg-white/[0.02] p-4">

@@ -5,17 +5,25 @@ import type { User as SbUser } from "@supabase/supabase-js";
 import { getProduct, products, provinces, type Product } from "./catalog";
 import { getCached, remember } from "./openlibrary";
 import { supabase } from "./supabase";
+import { canOps, roleFromEmail, type Role } from "./roles";
 
 export type User = {
   id?: string;
   email: string;
   name: string;
+  role: Role;
+  /** True for staff and owner — kept for older UI checks. */
   isAdmin: boolean;
   genres: string[];
   goal: string;
   points: number;
   firstOrderUsed: boolean;
 };
+
+function withRole(email: string): Pick<User, "role" | "isAdmin"> {
+  const role = roleFromEmail(email);
+  return { role, isAdmin: canOps(role) };
+}
 
 export type CartLine = { slug: string; qty: number };
 export type OrderStatus = "placed" | "packing" | "shipped" | "delivered";
@@ -81,27 +89,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [inventory, setInventory] = useState<Record<string, number>>(defaultInv);
 
-  const fromSb = (u: SbUser, extra?: Partial<User>): User => ({
-    id: u.id,
-    email: u.email || "",
-    name:
-      (u.user_metadata?.full_name as string) ||
-      (u.user_metadata?.name as string) ||
-      u.email?.split("@")[0] ||
-      "Reader",
-    isAdmin: (u.email || "").toLowerCase().includes("admin"),
-    genres: extra?.genres ?? [],
-    goal: extra?.goal ?? "mixed",
-    points: extra?.points ?? 80,
-    firstOrderUsed: extra?.firstOrderUsed ?? false,
-  });
+  const fromSb = (u: SbUser, extra?: Partial<User>): User => {
+    const email = u.email || "";
+    return {
+      id: u.id,
+      email,
+      name:
+        (u.user_metadata?.full_name as string) ||
+        (u.user_metadata?.name as string) ||
+        email.split("@")[0] ||
+        "Reader",
+      ...withRole(email),
+      genres: extra?.genres ?? [],
+      goal: extra?.goal ?? "mixed",
+      points: extra?.points ?? (canOps(roleFromEmail(email)) ? 0 : 80),
+      firstOrderUsed: extra?.firstOrderUsed ?? false,
+    };
+  };
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const d = JSON.parse(raw);
-        setUser(d.user ?? null);
+        if (d.user?.email) {
+          const email = d.user.email as string;
+          setUser({ ...d.user, ...withRole(email) });
+        }
         setCart(d.cart ?? []);
         setWishlist(d.wishlist ?? []);
         setOrders(d.orders ?? []);
@@ -143,14 +157,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reviews,
       inventory,
       login: (email, name, extra) => {
-        const isAdmin = email.toLowerCase().includes("admin");
+        const r = withRole(email);
         setUser({
           email,
           name: name || email.split("@")[0],
-          isAdmin,
+          ...r,
           genres: extra?.genres ?? [],
           goal: extra?.goal ?? "mixed",
-          points: isAdmin ? 0 : 80,
+          points: r.isAdmin ? 0 : 80,
           firstOrderUsed: false,
         });
       },
@@ -256,8 +270,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (!user) return;
         setReviews((r) => [{ slug, name: user.name, rating, body, at: new Date().toISOString() }, ...r]);
       },
-      adminSetStatus: (id, status) => setOrders((o) => o.map((x) => (x.id === id ? { ...x, status } : x))),
-      adminSetStock: (slug, stock) => setInventory((i) => ({ ...i, [slug]: stock })),
+      adminSetStatus: (id, status) => {
+        if (!canOps(user?.role)) return;
+        setOrders((o) => o.map((x) => (x.id === id ? { ...x, status } : x)));
+      },
+      adminSetStock: (slug, stock) => {
+        if (!canOps(user?.role)) return;
+        const n = Math.max(0, Math.floor(Number(stock) || 0));
+        setInventory((i) => ({ ...i, [slug]: n }));
+      },
     }),
     [ready, user, cart, wishlist, orders, reviews, inventory],
   );
