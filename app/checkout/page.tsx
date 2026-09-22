@@ -17,7 +17,6 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState("");
   const [payment, setPayment] = useState("promptpay");
   const [usePoints, setUsePoints] = useState(false);
-  const [useCredit, setUseCredit] = useState(false);
   const [err, setErr] = useState("");
   const lines = cart.map((l) => ({ ...l, p: productBySlug(l.slug)! })).filter((x) => x.p);
   const sub = lines.reduce((s, l) => s + l.p.price * l.qty, 0);
@@ -25,13 +24,11 @@ export default function CheckoutPage() {
   const welcome = coupon.trim().toUpperCase() === "WELCOME10" && user && !user.firstOrderUsed;
   const disc = welcome ? Math.round(sub * 0.1) : 0;
   const pVal = usePoints && (user?.points ?? 0) >= 100 ? Math.min(user!.points, Math.floor(sub / 10) * 10) / 5 : 0;
-  const beforeCredit = Math.max(0, sub - disc - pVal + fee);
-  const creditVal = useCredit ? Math.min(user?.credit || 0, beforeCredit) : 0;
-  const total = beforeCredit - creditVal;
+  const total = Math.max(0, sub - disc - pVal + fee);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const res = placeOrder({ address, province, payment, coupon, usePoints, useCredit });
+    const res = placeOrder({ address, province, payment, coupon, usePoints });
     if (typeof res === "string") {
       setErr(res);
       return;
@@ -93,12 +90,6 @@ export default function CheckoutPage() {
           <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} className="accent-white" />
           Use loyalty points ({user.points})
         </label>
-        {(user.credit || 0) > 0 && (
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-white/80">
-            <input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} className="accent-white" />
-            Use trade-in credit ({thb(user.credit)})
-          </label>
-        )}
         {payment === "promptpay" && (
           <div className="mx-auto grid h-40 w-40 place-items-center border border-white/10 bg-white/[0.02]">
             <div className="grid h-28 w-28 grid-cols-5 gap-0.5 bg-white p-2">
@@ -138,7 +129,7 @@ export default function CheckoutPage() {
         ))}
         <hr className="my-4 border-white/10" />
         <p className="flex justify-between">Subtotal {thb(sub)}</p>
-        <p className="flex justify-between">Discount −{thb(disc + pVal + creditVal)}</p>
+        <p className="flex justify-between">Discount −{thb(disc + pVal)}</p>
         <p className="flex justify-between">Delivery {thb(fee)}</p>
         <p className="mt-2 font-display text-2xl text-white">{thb(total)}</p>
       </Reveal>

@@ -63,12 +63,6 @@ export default function HomePage() {
             >
               60-second taste quiz
             </Link>
-            <Link
-              href="/sell/"
-              className="rounded-full border border-white/20 px-6 py-3 text-sm text-white hover:border-white/50"
-            >
-              Sell a spine
-            </Link>
           </div>
         </div>
         <motion.div

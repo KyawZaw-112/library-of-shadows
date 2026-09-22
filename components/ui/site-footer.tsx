@@ -22,9 +22,6 @@ export function SiteFooter() {
             <Link href="/wishlist/" className="hover:text-white">
               Wishlist
             </Link>
-            <Link href="/sell/" className="hover:text-white">
-              Sell a spine
-            </Link>
           </div>
         </div>
         <div>

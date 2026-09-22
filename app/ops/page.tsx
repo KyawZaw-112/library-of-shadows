@@ -7,7 +7,7 @@ import { canOps } from "@/lib/roles";
 import { useStore } from "@/lib/store";
 
 export default function OpsHome() {
-  const { user, orders, inventory, listings } = useStore();
+  const { user, orders, inventory } = useStore();
   if (!canOps(user?.role)) {
     return <Forbidden need="Staff or owner sign-in required. Use an email containing “staff” or “owner”." />;
   }
@@ -16,7 +16,6 @@ export default function OpsHome() {
   const packing = orders.filter((o) => o.status === "packing").length;
   const shipped = orders.filter((o) => o.status === "shipped").length;
   const low = products.filter((p) => (inventory[p.slug] ?? p.stock) <= 5);
-  const inbox = listings.filter((l) => l.status === "pending").length;
 
   return (
     <DeskShell desk="ops" title="Operations">
@@ -24,12 +23,11 @@ export default function OpsHome() {
         Pack, ship, and count stock. Finance lives on the owner desk. Data is this browser only — a live shop would
         enforce these roles on the server.
       </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         {[
           ["To pack", placed, "/ops/orders/"],
           ["Packing", packing, "/ops/orders/"],
           ["Out for delivery", shipped, "/ops/orders/"],
-          ["Trade-ins to inspect", inbox, "/ops/resale/"],
         ].map(([l, n, href]) => (
           <Link key={String(l)} href={String(href)} className="border border-white/10 bg-white/[0.02] p-4 hover:border-white/25">
             <p className="text-xs text-white/40">{l}</p>

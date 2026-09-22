@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { Heart, Star } from "lucide-react";
 import { getProduct, type Product } from "@/lib/catalog";
 import { fetchWork, getCached } from "@/lib/openlibrary";
-import { listingToProduct } from "@/lib/resale";
 import { thb } from "@/lib/money";
 import { useStore } from "@/lib/store";
 import { Reveal } from "@/components/ui/reveal";
@@ -16,7 +15,7 @@ import { motion } from "framer-motion";
 
 function Detail() {
   const id = useSearchParams().get("id") || "";
-  const { addToCart, toggleWish, wishlist, inventory, reviews, addReview, user, listings } = useStore();
+  const { addToCart, toggleWish, wishlist, inventory, reviews, addReview, user } = useStore();
   const fly = useFly();
   const coverRef = useRef<HTMLDivElement>(null);
   const [p, setP] = useState<Product | undefined>(getCached(id) || getProduct(id));
@@ -25,18 +24,13 @@ function Detail() {
 
   useEffect(() => {
     if (!id) return;
-    const listed = listings.find((l) => l.id === id);
-    if (listed) {
-      setP(listingToProduct(listed));
-      return;
-    }
     const local = getProduct(id);
     if (local) {
       setP(local);
       return;
     }
     void fetchWork(id).then(setP);
-  }, [id, listings]);
+  }, [id]);
 
   if (!id) return <p className="p-8">Missing book id.</p>;
   if (!p) return <ProductSkeleton />;
@@ -59,17 +53,14 @@ function Detail() {
       </Reveal>
       <Reveal delay={0.1}>
         <p className="text-[11px] tracking-[0.25em] text-white/50 uppercase">
-          {p.genre} · {p.format} · {p.format === "Used" ? "Pre-loved" : "Open Library"}
+          {p.genre} · {p.format} · Open Library
         </p>
         <h1 className="mt-3 font-display text-4xl text-white md:text-5xl">{p.title}</h1>
         <p className="mt-1 text-white/50">{p.author}</p>
         <p className="mt-3 flex items-center gap-1 text-sm text-white/55">
           <Star className="h-4 w-4 text-white/70" /> {p.rating} ({p.ratingCount + mine.length})
         </p>
-        <p className="mt-6 font-display text-3xl text-white">
-          {thb(p.price)}
-          {p.compareAt ? <span className="ml-2 text-base text-white/35 line-through">{thb(p.compareAt)}</span> : null}
-        </p>
+        <p className="mt-6 font-display text-3xl text-white">{thb(p.price)}</p>
         <p className="mt-5 text-sm leading-relaxed text-white/60 whitespace-pre-line">{p.description}</p>
         <p className="mt-4 text-xs text-white/35">SKU {p.sku} · Stock {stock}</p>
         <div className="mt-8 flex gap-3">

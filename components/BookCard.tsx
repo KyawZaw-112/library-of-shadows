@@ -59,12 +59,7 @@ export default function BookCard({ product }: { product: Product }) {
       <p className="line-clamp-2 font-display text-lg leading-tight text-white">{product.title}</p>
       <p className="text-xs text-white/45">{product.author}</p>
       <div className="mt-2 flex items-center justify-between">
-        <span className="font-display text-xl text-white">
-          {thb(product.price)}
-          {product.compareAt ? (
-            <span className="ml-1 text-xs text-white/35 line-through">{thb(product.compareAt)}</span>
-          ) : null}
-        </span>
+        <span className="font-display text-xl text-white">{thb(product.price)}</span>
         <span className="flex items-center gap-1 text-xs text-white/60">
           <Star className="h-3.5 w-3.5 text-white/70" />
           {product.rating}

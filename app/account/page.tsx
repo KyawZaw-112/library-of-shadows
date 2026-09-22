@@ -29,7 +29,7 @@ export default function AccountPage() {
           {user.email} · {roleLabel(user.role)}
         </p>
       </Reveal>
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div className="border border-white/10 bg-white/[0.02] p-4">
           <p className="text-xs text-white/40">Loyalty</p>
           <p className="font-display text-3xl text-white">{user.points} pts</p>
@@ -41,10 +41,6 @@ export default function AccountPage() {
         <div className="border border-white/10 bg-white/[0.02] p-4">
           <p className="text-xs text-white/40">Wishlist</p>
           <p className="font-display text-3xl text-white">{wishlist.length}</p>
-        </div>
-        <div className="border border-white/10 bg-white/[0.02] p-4">
-          <p className="text-xs text-white/40">Trade-in credit</p>
-          <p className="font-display text-3xl text-white">{thb(user.credit || 0)}</p>
         </div>
       </div>
 
@@ -66,12 +62,6 @@ export default function AccountPage() {
         </Link>
         <Link href="/wishlist/" className="text-white underline">
           Wishlist →
-        </Link>
-        <Link href="/sell/" className="text-white underline">
-          Sell a spine →
-        </Link>
-        <Link href="/account/listings/" className="text-white underline">
-          My trade-ins →
         </Link>
         {canOps(user.role) && (
           <Link href="/ops/" className="text-white underline">
