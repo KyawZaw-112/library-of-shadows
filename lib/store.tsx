@@ -6,6 +6,12 @@ import { getProduct, products, provinces, type Product } from "./catalog";
 import { getCached, remember } from "./openlibrary";
 import { supabase } from "./supabase";
 import { canOps, roleFromEmail, type Role } from "./roles";
+import {
+  listingToProduct,
+  seedListings,
+  type ListingStatus,
+  type ResaleListing,
+} from "./resale";
 
 export type User = {
   id?: string;
@@ -17,6 +23,7 @@ export type User = {
   genres: string[];
   goal: string;
   points: number;
+  credit: number;
   firstOrderUsed: boolean;
 };
 
@@ -69,10 +76,14 @@ type Store = {
     payment: string;
     coupon: string;
     usePoints: boolean;
+    useCredit?: boolean;
   }) => Order | string;
   addReview: (slug: string, rating: number, body: string) => void;
   adminSetStatus: (id: string, status: OrderStatus) => void;
   adminSetStock: (slug: string, stock: number) => void;
+  listings: ResaleListing[];
+  listResale: (input: Omit<ResaleListing, "id" | "createdAt" | "status" | "credited" | "sellerEmail" | "sellerName">) => ResaleListing | string;
+  opsSetListing: (id: string, status: ListingStatus) => void;
 };
 
 const KEY = "los-store-v1";
@@ -88,6 +99,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [inventory, setInventory] = useState<Record<string, number>>(defaultInv);
+  const [listings, setListings] = useState<ResaleListing[]>(seedListings);
 
   const fromSb = (u: SbUser, extra?: Partial<User>): User => {
     const email = u.email || "";
@@ -103,6 +115,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       genres: extra?.genres ?? [],
       goal: extra?.goal ?? "mixed",
       points: extra?.points ?? (canOps(roleFromEmail(email)) ? 0 : 80),
+      credit: extra?.credit ?? 0,
       firstOrderUsed: extra?.firstOrderUsed ?? false,
     };
   };
@@ -114,13 +127,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const d = JSON.parse(raw);
         if (d.user?.email) {
           const email = d.user.email as string;
-          setUser({ ...d.user, ...withRole(email) });
+          setUser({ credit: 0, ...d.user, ...withRole(email) });
         }
         setCart(d.cart ?? []);
         setWishlist(d.wishlist ?? []);
         setOrders(d.orders ?? []);
         setReviews(d.reviews ?? []);
         setInventory({ ...defaultInv(), ...(d.inventory ?? {}) });
+        const rows: ResaleListing[] = Array.isArray(d.listings) && d.listings.length ? d.listings : seedListings;
+        setListings(rows);
+        rows.filter((l) => l.status === "listed").forEach(listingToProduct);
       }
     } catch {
       /* ignore */
@@ -130,7 +146,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (async () => {
       if (supabase) {
         const { data } = await supabase.auth.getSession();
-        if (data.session?.user) setUser(fromSb(data.session.user));
+        if (data.session?.user) setUser((prev) => fromSb(data.session.user, prev ?? undefined));
         const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
           if (session?.user) setUser((prev) => fromSb(session.user, prev ?? undefined));
           else setUser(null);
@@ -144,8 +160,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    localStorage.setItem(KEY, JSON.stringify({ user, cart, wishlist, orders, reviews, inventory }));
-  }, [ready, user, cart, wishlist, orders, reviews, inventory]);
+    localStorage.setItem(KEY, JSON.stringify({ user, cart, wishlist, orders, reviews, inventory, listings }));
+  }, [ready, user, cart, wishlist, orders, reviews, inventory, listings]);
+
+  useEffect(() => {
+    listings.filter((l) => l.status === "listed").forEach(listingToProduct);
+  }, [listings]);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    let pay = 0;
+    const next = listings.map((l) => {
+      if (l.sellerEmail === user.email && l.status === "sold" && !l.credited) {
+        pay += l.buyback;
+        return { ...l, credited: true };
+      }
+      return l;
+    });
+    if (!pay) return;
+    setListings(next);
+    setUser((u) => (u ? { ...u, credit: (u.credit || 0) + pay } : u));
+  }, [user?.email, listings]);
 
   const api = useMemo<Store>(
     () => ({
@@ -156,6 +191,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       orders,
       reviews,
       inventory,
+      listings,
       login: (email, name, extra) => {
         const r = withRole(email);
         setUser({
@@ -165,6 +201,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           genres: extra?.genres ?? [],
           goal: extra?.goal ?? "mixed",
           points: r.isAdmin ? 0 : 80,
+          credit: 0,
           firstOrderUsed: false,
         });
       },
@@ -200,6 +237,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (p) remember(p);
         const slug = typeof item === "string" ? item : item.slug;
         setCart((c) => {
+          if (p?.format === "Used") {
+            return c.some((l) => l.slug === slug) ? c : [...c, { slug, qty: 1 }];
+          }
           const i = c.find((l) => l.slug === slug);
           if (i) return c.map((l) => (l.slug === slug ? { ...l, qty: l.qty + qty } : l));
           return [...c, { slug, qty }];
@@ -207,17 +247,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       setQty: (slug, qty) => setCart((c) => (qty <= 0 ? c.filter((l) => l.slug !== slug) : c.map((l) => (l.slug === slug ? { ...l, qty } : l)))),
       toggleWish: (slug) => setWishlist((w) => (w.includes(slug) ? w.filter((s) => s !== slug) : [...w, slug])),
-      placeOrder: ({ address, province, payment, coupon, usePoints }) => {
+      placeOrder: ({ address, province, payment, coupon, usePoints, useCredit }) => {
         if (!user) return "Please sign in first.";
         if (!cart.length) return "Cart is empty.";
         const lines: { slug: string; title: string; qty: number; price: number }[] = [];
+        const usedIds: string[] = [];
         for (const l of cart) {
           const p = getCached(l.slug) || getProduct(l.slug);
           if (!p) return "A cart title is no longer available.";
+          if (p.format === "Used") {
+            const listing = listings.find((x) => x.id === p.slug);
+            if (!listing || listing.status !== "listed") return `“${p.title}” is no longer on the pre-loved shelf.`;
+            if (listing.sellerEmail === user.email) return "You cannot buy your own listing.";
+            if (l.qty !== 1) return "Pre-loved copies are one of one.";
+            usedIds.push(listing.id);
+          } else if ((inventory[l.slug] ?? p.stock) < l.qty) {
+            return `Not enough stock for ${p.title}`;
+          }
           lines.push({ slug: l.slug, title: p.title, qty: l.qty, price: p.price });
-        }
-        for (const l of lines) {
-          if ((inventory[l.slug] ?? 18) < l.qty) return `Not enough stock for ${l.title}`;
         }
         const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
         const code = coupon.trim().toUpperCase();
@@ -231,7 +278,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           pointsUsed = Math.min(user.points, Math.floor(subtotal / 10) * 10);
         }
         const pointsValue = (pointsUsed / 100) * 20;
-        const total = Math.max(0, subtotal - discount - pointsValue + delivery);
+        let total = Math.max(0, subtotal - discount - pointsValue + delivery);
+        const creditUsed = useCredit ? Math.min(user.credit || 0, total) : 0;
+        total -= creditUsed;
         const id = "LOS-" + Date.now().toString(36).toUpperCase();
         const order: Order = {
           id,
@@ -243,7 +292,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           payment,
           coupon: discount ? code : undefined,
           subtotal,
-          discount: discount + pointsValue,
+          discount: discount + pointsValue + creditUsed,
           delivery,
           pointsUsed,
           total,
@@ -251,9 +300,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         };
         setOrders((o) => [order, ...o]);
         setCart([]);
+        if (usedIds.length) {
+          setListings((rows) => rows.map((x) => (usedIds.includes(x.id) ? { ...x, status: "sold" as const } : x)));
+        }
         setInventory((inv) => {
           const n = { ...inv };
           lines.forEach((l) => {
+            if (usedIds.includes(l.slug)) return;
             n[l.slug] = (n[l.slug] ?? 18) - l.qty;
           });
           return n;
@@ -263,6 +316,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ...user,
           firstOrderUsed: user.firstOrderUsed || Boolean(discount && code === "WELCOME10"),
           points: user.points - pointsUsed + earned,
+          credit: (user.credit || 0) - creditUsed,
         });
         return order;
       },
@@ -279,8 +333,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const n = Math.max(0, Math.floor(Number(stock) || 0));
         setInventory((i) => ({ ...i, [slug]: n }));
       },
+      listResale: (input) => {
+        if (!user) return "Sign in to sell a spine.";
+        if (!input.title.trim()) return "Pick a title first.";
+        const row: ResaleListing = {
+          ...input,
+          id: "RS-" + Date.now().toString(36).toUpperCase(),
+          createdAt: new Date().toISOString(),
+          status: "pending",
+          credited: false,
+          sellerEmail: user.email,
+          sellerName: user.name,
+        };
+        setListings((rows) => [row, ...rows]);
+        return row;
+      },
+      opsSetListing: (id, status) => {
+        if (!canOps(user?.role)) return;
+        setListings((rows) =>
+          rows.map((x) => {
+            if (x.id !== id) return x;
+            const next = { ...x, status };
+            if (status === "listed") listingToProduct(next);
+            return next;
+          }),
+        );
+      },
     }),
-    [ready, user, cart, wishlist, orders, reviews, inventory],
+    [ready, user, cart, wishlist, orders, reviews, inventory, listings],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

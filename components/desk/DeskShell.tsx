@@ -21,6 +21,7 @@ export function DeskShell({
     { href: "/ops/", label: "Queue" },
     { href: "/ops/orders/", label: "Orders" },
     { href: "/ops/inventory/", label: "Inventory" },
+    { href: "/ops/resale/", label: "Trade-ins" },
   ];
   const ownerLinks = [
     { href: "/owner/", label: "Desk" },

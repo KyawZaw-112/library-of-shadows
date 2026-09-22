@@ -16,7 +16,7 @@ export type Product = {
   compareAt?: number;
   rating: number;
   ratingCount: number;
-  format: "Physical" | "Bundle";
+  format: "Physical" | "Bundle" | "Used";
   tag?: string;
   cover: string;
   description: string;
@@ -176,6 +176,7 @@ export const faqs = [
   { q: "Do you ship physical books only?", a: "Yes — spines, bundles, notebooks. No PDFs." },
   { q: "First order discount?", a: "Use WELCOME10 at checkout for 10% off your first paid order." },
   { q: "How do points work?", a: "Earn 1 point per ฿10 spent. 100 points = ฿20 off." },
+  { q: "Can I sell my books?", a: "Yes. Use Sell a spine — we quote a buyback from condition, Ops inspects, then it lands on the Pre-loved shelf. Credit pays out when it sells." },
   { q: "LINE support?", a: "Tap the LINE button on Support — demo links to line.me." },
   { q: "Where do titles come from?", a: "Catalog books are loaded live from Open Library (covers, authors, subjects). Prices follow our student bands ฿249 / ฿299 / ฿499." },
 ];
