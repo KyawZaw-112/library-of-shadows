@@ -55,9 +55,14 @@ export default function AboutPage() {
         We sit between mega-retailers and physical shops: more tailored than SE-ED / Naiin / Asia Books at scale, more
         convenient than a local store.
       </p>
-      <Link href="/business/" className="mt-8 inline-block text-white underline">
-        Full model, pricing & break-even →
-      </Link>
+      <div className="mt-8 flex flex-wrap gap-4">
+        <Link href="/presentation/" className="text-white underline">
+          Scroll the pitch →
+        </Link>
+        <Link href="/business/" className="text-white/55 underline">
+          Full model, pricing & break-even →
+        </Link>
+      </div>
       </Reveal>
     </main>
   );

@@ -7,6 +7,7 @@ export const founders = [
   { name: "Shalakhov Grigorii", id: "240702404481" },
   { name: "Kyaw Zaw Win", id: "250702402906" },
   { name: "Min Khant", id: "250702402594" },
+  { name: "Than Tun Oo", id: "250702402045"}
 ];
 
 export const problems = [

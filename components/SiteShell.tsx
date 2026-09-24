@@ -38,7 +38,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     router.push(`/search/?q=${encodeURIComponent(q.trim())}`);
   };
 
-  const hideChrome = path.startsWith("/admin") || path.startsWith("/ops") || path.startsWith("/owner");
+  const hideChrome =
+    path.startsWith("/admin") ||
+    path.startsWith("/ops") ||
+    path.startsWith("/owner") ||
+    path.startsWith("/presentation");
   const navItems = [
     { name: "Home", link: "/", icon: <Home className="h-4 w-4" /> },
     { name: "Catalog", link: "/catalog/", icon: <Library className="h-4 w-4" /> },
@@ -48,7 +52,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-ink pb-16 md:pb-0">
+    <div
+      className={`relative min-h-screen overflow-x-hidden ${
+        path.startsWith("/presentation") ? "bg-[#eef2ff] pb-0" : "bg-ink pb-16 md:pb-0"
+      }`}
+    >
       {!hideChrome && (
         <>
           <FloatingNav navItems={navItems} />

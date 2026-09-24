@@ -1,0 +1,8 @@
+{
+  "permission_rules": [
+    {
+      "tool": "PowerShell($ErrorActionPreference='SilentlyContinue' *)",
+      "decision": "allow"
+    }
+  ]
+}

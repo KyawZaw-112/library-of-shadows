@@ -10,6 +10,7 @@ const nextConfig = {
   basePath: isPages ? `/${repo}` : "",
   assetPrefix: isPages ? `/${repo}/` : "",
   env: { NEXT_PUBLIC_BASE_PATH: isPages ? `/${repo}` : "" },
+  transpilePackages: ["three", "@react-three/fiber", "@react-three/drei"],
 };
 
 export default nextConfig;
